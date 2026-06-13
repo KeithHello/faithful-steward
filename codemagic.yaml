@@ -4,8 +4,6 @@ workflows:
     environment:
       vars:
         XCODE_VERSION: "16.0"
-      groups:
-        - appstore_credentials
     triggering:
       events:
         - push
