@@ -61,7 +61,7 @@ class SettingsViewModel: ObservableObject {
         do {
             if let config = try dataProvider.fetchLatestBudgetConfig() {
                 monthlyTotalText = String(format: "%.0f", config.monthlyTotal)
-                ratios = dataProvider.decodeRatiosFromJSON(config.ratiosJSON)
+                ratios = DataProvider.decodeRatiosFromJSON(config.ratiosJSON ?? "")
             } else {
                 // 使用预设值
                 monthlyTotalText = LocalizedString.defaultMonthlyBudget

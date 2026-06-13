@@ -150,7 +150,7 @@ class BudgetOverviewViewModel: ObservableObject {
         // 按月总额加权平均比例
         var weightedRatios: [Category: Double] = [:]
         for config in configs {
-            let ratios = DataProvider.decodeRatiosFromJSON(config.ratiosJSON)
+            let ratios = DataProvider.decodeRatiosFromJSON(config.ratiosJSON ?? "")
             let weight = totalBudget > 0 ? config.monthlyTotal / totalBudget : 0
             for (category, ratio) in ratios {
                 weightedRatios[category, default: 0] += ratio * weight

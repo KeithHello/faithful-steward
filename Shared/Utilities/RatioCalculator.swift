@@ -11,7 +11,7 @@ struct RatioCalculator {
         var grandTotal: Double = 0
 
         for transaction in transactions {
-            guard let category = Category(rawValue: transaction.categoryRaw) else { continue }
+            guard let category = Category(rawValue: transaction.categoryRaw ?? "") else { continue }
             categoryTotals[category, default: 0] += transaction.amount
             grandTotal += transaction.amount
         }
@@ -36,7 +36,7 @@ struct RatioCalculator {
     static func calculateActualAmounts(transactions: [TransactionEntity]) -> [Category: Double] {
         var amounts: [Category: Double] = [:]
         for transaction in transactions {
-            guard let category = Category(rawValue: transaction.categoryRaw) else { continue }
+            guard let category = Category(rawValue: transaction.categoryRaw ?? "") else { continue }
             amounts[category, default: 0] += transaction.amount
         }
         // 确保所有分类都有值
@@ -52,7 +52,7 @@ struct RatioCalculator {
     /// - Parameter config: 预算设定实体
     /// - Returns: [Category: Double] 各分类预算比例
     static func calculateBudgetRatios(config: BudgetConfigEntity) -> [Category: Double] {
-        return DataProvider.decodeRatiosFromJSON(config.ratiosJSON)
+        return DataProvider.decodeRatiosFromJSON(config.ratiosJSON ?? "")
     }
 
     /// 计算各分类实际比例与预算比例的差异
