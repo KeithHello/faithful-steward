@@ -5,13 +5,12 @@
     <key>method</key>
     <string>development</string>
     <key>signingStyle</key>
-    <string>manual</string>
+    <string>automatic</string>
     <key>teamID</key>
-    <string>YOUR_TEAM_ID</string>
-    <key>provisioningProfiles</key>
-    <dict>
-        <key>com.faithfulsteward.app</key>
-        <string>FaithfulSteward Development</string>
-    </dict>
+    <string></string>
+    <key>uploadBitcode</key>
+    <false/>
+    <key>compileBitcode</key>
+    <false/>
 </dict>
 </plist>
