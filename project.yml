@@ -15,26 +15,40 @@ targets:
     type: application
     platform: iOS
     sources:
-      - Core
-      - Features
-      - Shared
-      - Resources
-      - tithe_budgetApp.swift
+      - path: Core
+        excludes:
+          - "**/*.md"
+      - path: Features
+        excludes:
+          - "**/*.md"
+      - path: Shared
+        excludes:
+          - "**/*.md"
+      - path: tithe_budgetApp.swift
+      - path: Resources/tithe_budget.xcdatamodeld
+        type: coreDataModel
     info:
       path: Resources/Info.plist
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.faithfulsteward.app
-      INFOPLIST_FILE: Resources/Info.plist
-      SWIFT_VERSION: "5.9"
-      TARGETED_DEVICE_FAMILY: "1"
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.faithfulsteward.app
+        INFOPLIST_FILE: Resources/Info.plist
+        SWIFT_VERSION: "5.9"
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+        ENABLE_USER_SCRIPT_SANDBOXING: "NO"
 
   FaithfulStewardTests:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - tithe_budgetTests
+      - path: tithe_budgetTests
+        excludes:
+          - "**/*.md"
     dependencies:
       - target: FaithfulSteward
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.faithfulsteward.tests
-      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/FaithfulSteward.app"
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.faithfulsteward.tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/FaithfulSteward.app"
+        SWIFT_VERSION: "5.9"

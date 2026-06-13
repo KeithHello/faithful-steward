@@ -1,6 +1,6 @@
 import XCTest
 import SwiftUI
-@testable import tithe_budget
+@testable import FaithfulSteward
 
 /// Category enum 单元测试：验证 7 大分类的预设比例、显示名称、颜色与图标设定。
 final class CategoryTests: XCTestCase {

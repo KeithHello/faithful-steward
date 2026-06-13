@@ -1,5 +1,5 @@
 import XCTest
-@testable import tithe_budget
+@testable import FaithfulSteward
 
 /// AmountParser 单元测试：验证阿拉伯数字与繁体中文口语数字的解析能力。
 final class AmountParserTests: XCTestCase {

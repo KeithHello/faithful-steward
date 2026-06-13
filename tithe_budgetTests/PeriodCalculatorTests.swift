@@ -1,5 +1,5 @@
 import XCTest
-@testable import tithe_budget
+@testable import FaithfulSteward
 
 /// PeriodCalculator 单元测试：验证 monthKey 格式化与自然月周期日期区间计算。
 final class PeriodCalculatorTests: XCTestCase {

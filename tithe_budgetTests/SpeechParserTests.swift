@@ -1,5 +1,5 @@
 import XCTest
-@testable import tithe_budget
+@testable import FaithfulSteward
 
 /// SpeechParser 单元测试：验证从语音辨识文字中提取金额与分类的能力。
 final class SpeechParserTests: XCTestCase {

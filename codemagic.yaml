@@ -1,0 +1,67 @@
+workflows:
+  faithful-steward-ios:
+    name: FaithfulSteward iOS
+    environment:
+      vars:
+        APP_STORE_CONNECT_ISSUER_ID: ""  # 从 App Store Connect → API Keys 取得
+        APP_STORE_CONNECT_KEY_IDENTIFIER: ""  # 同上
+        APP_STORE_CONNECT_PRIVATE_KEY: ""  # 同上
+        CERTIFICATE_PRIVATE_KEY_PASSWORD: ""  # 你设定的证书私钥密码
+      groups:
+        - appstore_credentials  # Codemagic UI 中设定的环境变量群组
+      ios:
+        xcode: 16.0
+      cocoapods:
+        disabled: true
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Install XcodeGen
+        script: brew install xcodegen
+
+      - name: Generate Xcode project
+        script: xcodegen generate
+
+      - name: Build for testing
+        script: |
+          xcodebuild build-for-testing \
+            -project FaithfulSteward.xcodeproj \
+            -scheme FaithfulSteward \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=YES
+
+      - name: Build .ipa with automatic signing
+        script: |
+          # Codemagic 会自动管理签名证书
+          # 只需要在 Codemagic UI 中上传 Apple Developer 证书
+          xcodebuild archive \
+            -project FaithfulSteward.xcodeproj \
+            -scheme FaithfulSteward \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/build/FaithfulSteward.xcarchive \
+            -allowProvisioningUpdates
+
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/build/FaithfulSteward.xcarchive \
+            -exportOptionsPlist .github/export-options.plist \
+            -exportPath $CM_BUILD_DIR/build/app \
+            -allowProvisioningUpdates
+
+    artifacts:
+      - build/app/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Logs/*.xcactivitylog
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com  # 替换为你的 Email
+        notify:
+          success: true
+          failure: true

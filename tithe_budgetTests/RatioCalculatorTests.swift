@@ -1,6 +1,6 @@
 import XCTest
 import CoreData
-@testable import tithe_budget
+@testable import FaithfulSteward
 
 /// RatioCalculator 单元测试：验证比例计算、差异计算、重分配算法与总和验证。
 final class RatioCalculatorTests: XCTestCase {
@@ -21,7 +21,7 @@ final class RatioCalculatorTests: XCTestCase {
 
     /// 建立内存中的 NSPersistentContainer，用于建立 TransactionEntity / BudgetConfigEntity
     private func makeInMemoryContainer() -> NSPersistentContainer {
-        let container = NSPersistentContainer(name: "tithe_budget")
+        let container = NSPersistentContainer(name: "FaithfulSteward")
         let description = NSPersistentStoreDescription()
         description.url = URL(fileURLWithPath: "/dev/null")
         container.persistentStoreDescriptions = [description]
