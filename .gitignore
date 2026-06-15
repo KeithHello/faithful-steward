@@ -1,11 +1,19 @@
-# Swift/Xcode
-*.xcworkspace
-*.xcuserdata
+# XcodeGen generated files
+*.xcodeproj/
 DerivedData/
 .build/
+build/
 *.o
 *.ipa
 *.dSYM
+*.xcodeproj/
+
+# Xcode
+xcuserdata/
+*.xcworkspace/
+
+# macOS
+.DS_Store
 
 # Python
 __pycache__/
@@ -13,7 +21,6 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 .dist/
-build/
 dist/
 
 # IDE
@@ -24,7 +31,6 @@ dist/
 *~
 
 # OS
-.DS_Store
 Thumbs.db
 
 # Environment

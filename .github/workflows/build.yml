@@ -1,0 +1,63 @@
+name: Build FaithfulSteward
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate compilation
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build for simulator - capture full errors
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project FaithfulSteward.xcodeproj \
+            -scheme FaithfulSteward \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=YES \
+            2>&1 | tee xcodebuild.log
+
+          echo "=========================================="
+          echo "=== COMPILER ERRORS (if any): ==="
+          grep -n "error:" xcodebuild.log || echo "No errors found in grep"
+
+          echo ""
+          echo "=== ERROR LINES WITH CONTEXT: ==="
+          grep -B2 -A2 "error:" xcodebuild.log || echo "No context available"
+
+      - name: Upload full build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
+
+      - name: Run unit tests
+        if: success()
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project FaithfulSteward.xcodeproj \
+            -scheme FaithfulSteward \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=YES \
+            2>&1 | tee xcodebuild-test.log

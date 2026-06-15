@@ -1,0 +1,51 @@
+workflows:
+  faithful-steward-ios:
+    name: FaithfulSteward iOS
+    environment:
+      vars:
+        XCODE_VERSION: "16.0"
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Install XcodeGen
+        script: brew install xcodegen
+
+      - name: Generate Xcode project
+        script: xcodegen generate
+
+      - name: Build .ipa for device
+        script: |
+          # Build archive (requires provisioning profile set up in Codemagic UI)
+          xcodebuild archive \
+            -project FaithfulSteward.xcodeproj \
+            -scheme FaithfulSteward \
+            -configuration Release \
+            -archivePath $CM_BUILD_DIR/build/FaithfulSteward.xcarchive \
+            -allowProvisioningUpdates
+
+          # Export .ipa
+          xcodebuild -exportArchive \
+            -archivePath $CM_BUILD_DIR/build/FaithfulSteward.xcarchive \
+            -exportPath $CM_BUILD_DIR/build/app \
+            -exportOptionsPlist .github/export-options.plist \
+            -allowProvisioningUpdates
+
+      - name: Run unit tests
+        script: |
+          xcodebuild test \
+            -project FaithfulSteward.xcodeproj \
+            -scheme FaithfulSteward \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=YES
+
+    artifacts:
+      - build/app/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Logs/*.xcactivitylog
