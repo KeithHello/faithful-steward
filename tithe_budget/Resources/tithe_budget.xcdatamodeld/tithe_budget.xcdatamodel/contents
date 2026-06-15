@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="TransactionEntity" representedClassName="TransactionEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO" defaultValueString=""/>
+        <attribute name="amount" attributeType="Double" defaultValueString="0.0"/>
+        <attribute name="categoryRaw" attributeType="String" defaultValueString=""/>
+        <attribute name="note" attributeType="String" optional="YES" defaultValueString=""/>
+        <attribute name="inputMethodRaw" attributeType="String" defaultValueString="text"/>
+        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="BudgetConfigEntity" representedClassName="BudgetConfigEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO" defaultValueString=""/>
+        <attribute name="monthKey" attributeType="String" defaultValueString=""/>
+        <attribute name="monthlyTotal" attributeType="Double" defaultValueString="0.0"/>
+        <attribute name="ratiosJSON" attributeType="String" defaultValueString="{}"/>
+        <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <elements>
+        <element name="TransactionEntity" positionX="-160" positionY="-64" width="128" height="149"/>
+        <element name="BudgetConfigEntity" positionX="-36" positionY="-64" width="128" height="119"/>
+    </elements>
+</model>

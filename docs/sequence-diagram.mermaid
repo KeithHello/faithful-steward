@@ -1,0 +1,182 @@
+%% ============================================================
+%% 什一记账（tithe_budget）— 全部时序图
+%% ============================================================
+
+%% ────────────────────────────────────────────
+%% 4.1 文字记账流程（UC1）
+%% ────────────────────────────────────────────
+
+sequenceDiagram
+    actor User
+    participant View as RecordTransactionView
+    participant VM as RecordTransactionViewModel
+    participant AP as AmountParser
+    participant DP as DataProvider
+    participant PC as PersistenceController
+
+    User->>View: 输入金额 "250"
+    View->>VM: amountText = "250"
+    VM->>AP: parse("250")
+    AP-->>VM: 250.0
+    VM->>VM: parsedAmount = 250.0
+
+    User->>View: 点击分类「食行」
+    View->>VM: selectedCategory = .foodTransport
+    VM->>VM: canConfirm = true
+
+    User->>View: 点击「确认记账」
+    View->>VM: submitTransaction()
+    VM->>VM: validate(): amount > 0 && category != nil
+
+    VM->>DP: addTransaction(amount: 250, category: .foodTransport, note: nil, method: .text)
+    DP->>PC: viewContext.insert(transaction)
+    DP->>PC: save()
+    PC-->>DP: success
+    DP-->>VM: success
+
+    VM->>VM: clearInput()
+    VM-->>View: ToastBanner "记账成功"
+    View-->>User: 显示成功提示，栏位清空
+
+%% ────────────────────────────────────────────
+%% 4.2 语音记账流程（UC2 — 含分类辨识）
+%% ────────────────────────────────────────────
+
+sequenceDiagram
+    actor User
+    participant View as RecordTransactionView
+    participant VM as RecordTransactionViewModel
+    participant SR as SpeechRecognizer
+    participant SP as SpeechParser
+    participant AP as AmountParser
+    participant DP as DataProvider
+
+    User->>View: 长按麦克风按钮
+    View->>VM: startRecording()
+    VM->>SR: requestAuthorization()
+    SR-->>VM: authorized = true
+    VM->>SR: startRecording()
+    SR-->>VM: streaming partial results...
+    Note over View,SR: 声波动画显示中
+
+    User->>View: 说「食行两百五」，松开按钮
+    View->>VM: stopRecording()
+    VM->>SR: stopRecording()
+    SR-->>VM: finalText = "食行两百五"
+
+    VM->>SP: parse("食行两百五")
+    SP->>AP: parseChineseNumber("两百五")
+    AP-->>SP: 250.0
+    SP->>SP: matchCategory("食行") → .foodTransport
+    SP-->>VM: ParsedResult(amount: 250, category: .foodTransport)
+
+    VM->>VM: parsedAmount = 250, selectedCategory = .foodTransport
+    VM-->>View: 更新 UI：金额栏 = 250，分类「食行」高亮
+
+    User->>View: 点击「确认」
+    View->>VM: submitTransaction()
+    VM->>DP: addTransaction(amount: 250, category: .foodTransport, method: .voice)
+    DP-->>VM: success
+    VM-->>View: ToastBanner "记账成功"
+
+%% ────────────────────────────────────────────
+%% 4.3 预算比例对比检视流程（UC3）
+%% ────────────────────────────────────────────
+
+sequenceDiagram
+    actor User
+    participant View as BudgetOverviewView
+    participant VM as BudgetOverviewViewModel
+    participant PC as PeriodCalculator
+    participant RC as RatioCalculator
+    participant DP as DataProvider
+
+    User->>View: 切换到 Tab「总览」
+    View->>VM: loadData()
+    Note over VM: selectedPeriod = .currentMonth (预设)
+
+    VM->>PC: dateRange(for: .currentMonth, now: Date())
+    PC-->>VM: (start: 2025-06-01, end: 2025-06-30)
+
+    VM->>DP: fetchTransactions(from: start, to: end)
+    DP-->>VM: [TransactionEntity] (37 笔)
+
+    VM->>RC: calculateActualRatios(transactions)
+    RC-->>VM: [.tithe: 0.12, .filial: 0.08, ...]
+
+    VM->>DP: fetchBudgetConfig(forMonthKey: "2025-06")
+    DP-->>VM: BudgetConfigEntity (monthlyTotal=30000, ratios=...)
+
+    VM->>RC: calculateBudgetRatios(config)
+    RC-->>VM: [.tithe: 0.10, .filial: 0.10, ...]
+
+    VM->>RC: calculateDifference(actual, budget)
+    RC-->>VM: [.tithe: +0.02, .filial: -0.02, ...]
+
+    VM->>VM: 组装 [CategoryRowData] (7 笔)
+    VM-->>View: 更新 categoryRows / totalSpent / budgetTotal
+
+    View-->>User: 显示长条图：绿色=结余，红色=超出⚠
+
+    opt 切换周期
+        User->>View: 点选「近3月」
+        View->>VM: switchPeriod(.last3Months)
+        VM->>PC: dateRange(for: .last3Months)
+        PC-->>VM: (start: 2025-04-01, end: 2025-06-30)
+        VM->>DP: fetchTransactions(from: start, to: end)
+        Note over VM: 重复聚合流程，UI 更新
+        VM-->>View: 更新图表
+    end
+
+%% ────────────────────────────────────────────
+%% 4.4 设定月预算与比例流程（UC4）
+%% ────────────────────────────────────────────
+
+sequenceDiagram
+    actor User
+    participant View as SettingsView
+    participant VM as SettingsViewModel
+    participant RC as RatioCalculator
+    participant DP as DataProvider
+    participant PC as PeriodCalculator
+
+    User->>View: 切换到 Tab「设定」
+    View->>VM: loadConfig()
+
+    VM->>DP: fetchLatestBudgetConfig()
+    DP-->>VM: BudgetConfigEntity? (上个月或已存在)
+
+    alt 已有本月设定
+        VM->>VM: 填入 monthlyTotalText / ratios
+    else 无本月设定
+        VM->>VM: 沿用上个月设定或预设值（7 类预设比例）
+    end
+
+    VM-->>View: 显示当前设定
+
+    User->>View: 输入月预算总额 "35000"
+    View->>VM: monthlyTotalText = "35000"
+    VM->>VM: 计算各分类金额 = 35000 × ratio
+
+    User->>View: 拖动「食行」滑杆 30% → 35%
+    View->>VM: updateRatio(for: .foodTransport, to: 0.35)
+    VM->>RC: redistributeRatios(ratios, .foodTransport, 0.35)
+    RC->>RC: 差额 +5% 由其余 6 类按原比例分摊
+    RC-->>VM: 新的 ratios 字典
+    VM->>VM: 更新 ratios，更新滑杆位置
+    VM-->>View: 所有滑杆位置重新渲染
+
+    VM->>RC: validateTotalRatio(ratios)
+    RC-->>VM: true (总和 = 1.0)
+    VM->>VM: isValid = true
+
+    User->>View: 点击「储存」
+    View->>VM: saveConfig()
+    VM->>PC: monthKey(from: Date())
+    PC-->>VM: "2025-06"
+    VM->>DP: saveBudgetConfig(total: 35000, ratios: [...], monthKey: "2025-06")
+    DP->>PC: viewContext.save()
+    PC-->>DP: success
+    DP-->>VM: success
+    VM->>VM: isSaved = true
+    VM-->>View: ToastBanner "设定已储存"

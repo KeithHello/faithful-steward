@@ -1,0 +1,262 @@
+classDiagram
+    direction TB
+
+    %% ── Enums ──
+    class Category {
+        <<enum>>
+        +tithe
+        +filial
+        +social
+        +housing
+        +debt
+        +foodTransport
+        +flexible
+        +displayName: String
+        +defaultRatio: Double
+        +color: Color
+        +allCases: [Category]
+    }
+
+    class InputMethod {
+        <<enum>>
+        +text
+        +voice
+    }
+
+    class Period {
+        <<enum>>
+        +currentMonth
+        +last3Months
+        +last6Months
+        +last12Months
+        +displayName: String
+        +monthCount: Int
+        +dateRange(now: Date) -> (start: Date, end: Date)
+    }
+
+    %% ── CoreData Entities ──
+    class TransactionEntity {
+        <<NSManagedObject>>
+        +id: UUID
+        +amount: Double
+        +categoryRaw: String
+        +note: String?
+        +inputMethodRaw: String
+        +createdAt: Date
+        +updatedAt: Date
+    }
+
+    class BudgetConfigEntity {
+        <<NSManagedObject>>
+        +id: UUID
+        +monthKey: String
+        +monthlyTotal: Double
+        +ratiosJSON: String
+        +updatedAt: Date
+    }
+
+    %% ── Services ──
+    class PersistenceController {
+        -container: NSPersistentContainer
+        +shared: PersistenceController
+        +viewContext: NSManagedObjectContext
+        +save() throws
+    }
+
+    class DataProvider {
+        -context: NSManagedObjectContext
+        +fetchTransactions(from: Date, to: Date) -> [TransactionEntity]
+        +fetchTransactions(forCategory: Category, from: Date, to: Date) -> [TransactionEntity]
+        +addTransaction(amount: Double, category: Category, note: String?, method: InputMethod) throws
+        +updateTransaction(_ transaction: TransactionEntity) throws
+        +deleteTransaction(_ transaction: TransactionEntity) throws
+        +fetchBudgetConfig(forMonthKey: String) -> BudgetConfigEntity?
+        +fetchLatestBudgetConfig() -> BudgetConfigEntity?
+        +saveBudgetConfig(monthlyTotal: Double, ratios: [Category: Double], forMonthKey: String) throws
+    }
+
+    class SpeechRecognizer {
+        -speechRecognizer: SFSpeechRecognizer
+        -audioEngine: AVAudioEngine
+        -recognitionTask: SFSpeechRecognitionTask?
+        +isAuthorized: Bool
+        +isRecording: Bool
+        +requestAuthorization() async -> Bool
+        +startRecording() async throws -> AsyncStream~String~
+        +stopRecording()
+    }
+
+    class SpeechParser {
+        +parse(_ text: String) -> ParsedResult
+    }
+
+    class ParsedResult {
+        +amount: Double?
+        +category: Category?
+        +rawText: String
+    }
+
+    class AmountParser {
+        +parse(_ text: String) -> Double?
+        +parseChineseNumber(_ text: String) -> Double?
+    }
+
+    class RatioCalculator {
+        +calculateActualRatios(transactions: [TransactionEntity]) -> [Category: Double]
+        +calculateBudgetRatios(config: BudgetConfigEntity) -> [Category: Double]
+        +calculateDifference(actual: [Category: Double], budget: [Category: Double]) -> [Category: Double]
+        +validateTotalRatio(ratios: [Category: Double]) -> Bool
+        +redistributeRatios(ratios: [Category: Double], changedCategory: Category, newValue: Double) -> [Category: Double]
+    }
+
+    class PeriodCalculator {
+        +dateRange(for period: Period, now: Date) -> (start: Date, end: Date)
+        +monthKey(from date: Date) -> String
+        +allMonthKeys(for period: Period, now: Date) -> [String]
+    }
+
+    %% ── ViewModels ──
+    class RecordTransactionViewModel {
+        -dataProvider: DataProvider
+        -speechRecognizer: SpeechRecognizer
+        -speechParser: SpeechParser
+        -amountParser: AmountParser
+        +amountText: String
+        +parsedAmount: Double?
+        +selectedCategory: Category?
+        +isRecording: Bool
+        +voiceResultText: String
+        +errorMessage: String?
+        +canConfirm: Bool
+        +submitTransaction() throws
+        +processVoiceResult(_ text: String)
+        +clearInput()
+    }
+
+    class BudgetOverviewViewModel {
+        -dataProvider: DataProvider
+        -ratioCalculator: RatioCalculator
+        -periodCalculator: PeriodCalculator
+        +selectedPeriod: Period
+        +categoryRows: [CategoryRowData]
+        +totalSpent: Double
+        +budgetTotal: Double
+        +isEmpty: Bool
+        +loadData()
+        +switchPeriod(_ period: Period)
+    }
+
+    class CategoryRowData {
+        +category: Category
+        +actualRatio: Double
+        +budgetRatio: Double
+        +difference: Double
+        +actualAmount: Double
+        +budgetAmount: Double
+        +isOverBudget: Bool
+    }
+
+    class SettingsViewModel {
+        -dataProvider: DataProvider
+        -ratioCalculator: RatioCalculator
+        +monthlyTotalText: String
+        +ratios: [Category: Double]
+        +isValid: Bool
+        +isSaved: Bool
+        +loadConfig()
+        +updateRatio(for category: Category, to value: Double)
+        +saveConfig() throws
+    }
+
+    %% ── Views ──
+    class RecordTransactionView {
+        -viewModel: RecordTransactionViewModel
+    }
+
+    class VoiceInputButton {
+        -isRecording: Bool
+        -onResult: (String) -> Void
+    }
+
+    class CategorySelector {
+        -selectedCategory: Category?
+        -onSelect: (Category) -> Void
+    }
+
+    class BudgetOverviewView {
+        -viewModel: BudgetOverviewViewModel
+    }
+
+    class PeriodPicker {
+        -selectedPeriod: Period
+        -onSelect: (Period) -> Void
+    }
+
+    class BudgetBarChart {
+        -rows: [CategoryRowData]
+    }
+
+    class BudgetBarRow {
+        -rowData: CategoryRowData
+    }
+
+    class SettingsView {
+        -viewModel: SettingsViewModel
+    }
+
+    class BudgetTotalEditor {
+        -text: String
+        -onChange: (String) -> Void
+    }
+
+    class RatioSliderList {
+        -ratios: [Category: Double]
+        -onChange: (Category, Double) -> Void
+    }
+
+    %% ── Shared Components ──
+    class ConfirmDialog {
+        +show(amount: Double, category: Category, onConfirm: () -> Void, onCancel: () -> Void)
+    }
+
+    class ToastBanner {
+        +show(message: String, type: ToastType)
+    }
+
+    class EmptyStateView {
+        -message: String
+    }
+
+    %% ── Relationships: Service Layer ──
+    DataProvider ..> PersistenceController : uses
+    DataProvider ..> TransactionEntity : manages
+    DataProvider ..> BudgetConfigEntity : manages
+    SpeechRecognizer ..> SpeechParser : feeds into
+    SpeechParser ..> ParsedResult : produces
+    SpeechParser ..> AmountParser : delegates
+
+    %% ── Relationships: ViewModels ──
+    RecordTransactionViewModel ..> DataProvider : depends on
+    RecordTransactionViewModel ..> SpeechRecognizer : owns
+    RecordTransactionViewModel ..> SpeechParser : uses
+    RecordTransactionViewModel ..> AmountParser : uses
+    BudgetOverviewViewModel ..> DataProvider : depends on
+    BudgetOverviewViewModel ..> RatioCalculator : uses
+    BudgetOverviewViewModel ..> PeriodCalculator : uses
+    BudgetOverviewViewModel ..> CategoryRowData : produces
+    SettingsViewModel ..> DataProvider : depends on
+    SettingsViewModel ..> RatioCalculator : uses
+
+    %% ── Relationships: Views ──
+    RecordTransactionView --> RecordTransactionViewModel : observes
+    RecordTransactionView --> VoiceInputButton : contains
+    RecordTransactionView --> CategorySelector : contains
+    RecordTransactionView --> ConfirmDialog : uses
+    BudgetOverviewView --> BudgetOverviewViewModel : observes
+    BudgetOverviewView --> PeriodPicker : contains
+    BudgetOverviewView --> BudgetBarChart : contains
+    BudgetBarChart --> BudgetBarRow : composes
+    BudgetBarRow ..> CategoryRowData : renders
+    SettingsView --> SettingsViewModel : observes
+    SettingsView --> BudgetTotalEditor : contains
+    SettingsView --> RatioSliderList : contains

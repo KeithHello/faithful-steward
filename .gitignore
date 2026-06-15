@@ -1,0 +1,43 @@
+# Swift/Xcode
+*.xcworkspace
+*.xcuserdata
+DerivedData/
+.build/
+*.o
+*.ipa
+*.dSYM
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.dist/
+build/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.venv
+venv/
+.venv/
+
+# WorkBuddy (local workspace state)
+.workbuddy/
+
+# Git
+*.orig
+
+# Temp
+.tmp/
