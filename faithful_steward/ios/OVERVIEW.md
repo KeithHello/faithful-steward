@@ -1,4 +1,4 @@
-# tithe_budget iOS App — SwiftUI 重建完成
+# faithful_steward iOS App — SwiftUI 重建完成
 
 > 基於 architecture-tithe-budget.md 的完整文件清單重建
 > 開發日期：2026-06-15
@@ -8,8 +8,8 @@
 ## 專案結構（31 個檔案）
 
 ```
-tithe_budget/
-├── tithe_budgetApp.swift                    # App 進入點 + TabView（4 Tab）
+ios/
+├── faithful_stewardApp.swift                # App 進入點 + TabView（4 Tab）
 │
 ├── Core/
 │   ├── Models/
@@ -63,16 +63,16 @@ tithe_budget/
 │       └── String+Localization.swift        # 繁中字串常數
 │
 └── Resources/
-    └── tithe_budget.xcdatamodeld/           # CoreData 模型（TransactionEntity + BudgetConfigEntity）
+    └── faithful_steward.xcdatamodeld/       # CoreData 模型（TransactionEntity + BudgetConfigEntity）
 ```
 
 ## 架構對照
 
 | 架構圖層級 | 檔案 | 用途 |
 |---|---|---|
-| App Entry | `tithe_budgetApp.swift` | `@main` + TabView 4 Tab |
+| App Entry | `faithful_stewardApp.swift` | `@main` + TabView 4 Tab |
 | ViewModel | 3 個 `*ViewModel.swift` | MVVM 狀態管理、業務邏輯 |
-| DataProvider | `DataProvider.swift` | CoreData CRUD (
+| DataProvider | `DataProvider.swift` | CoreData CRUD |
 | PersistenceController | `PersistenceController.swift` | NSPersistentContainer |
 | 純函數服務 | 3 個 `Shared/Utilities/*.swift` | AmountParser, RatioCalculator, PeriodCalculator |
 | 語音 | `SpeechRecognizer.swift` + `SpeechParser.swift` | 語音辨識 + 解析 |
@@ -83,12 +83,12 @@ tithe_budget/
 
 1. 在 Xcode 選擇 **File → New → Project → iOS → App**
 2. 填寫：
-   - Product Name: `tithe_budget`
+   - Product Name: `faithful_steward`
    - Interface: **SwiftUI**
    - Language: **Swift**
    - 勾選 **Core Data**
-3. 將產出的 31 個 .swift 檔案依目錄結構拖入專案
-4. 取代 Xcode 自動產生的 CoreData 模型檔（用 `contents` 覆蓋）
+3. 將 `ios/` 下的 31 個 .swift 檔案依目錄結構拖入專案
+4. 取代 Xcode 自動產生的 CoreData 模型檔（用 `Resources/` 下的 `contents` 覆蓋）
 5. Build 即可
 
 > **注意**：此為純 SwiftUI 原始碼，無法在 Windows 編譯。需在 macOS + Xcode 環境中開啟。

@@ -10,7 +10,7 @@ struct PersistenceController {
     }
 
     init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "tithe_budget")
+        container = NSPersistentContainer(name: "faithful_steward")
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         }

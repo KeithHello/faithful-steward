@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct TitheBudgetApp: App {
+struct FaithfulStewardApp: App {
     let persistenceController = PersistenceController.shared
 
     var body: some Scene {
